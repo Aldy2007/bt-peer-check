@@ -88,7 +88,7 @@ export default {
                     downloaded: 536870912,
                     left: 536870912,
                 };
-                const proxyUrl = `https://api.aldyh.top/proxy`;
+                const proxyUrl = `https://api.vercel.aldyh.top/proxy`;
                 // const proxyUrl = `http://192.168.10.49:44444/proxy`;
                 const response = await axios.get(proxyUrl, {
                     params: {
