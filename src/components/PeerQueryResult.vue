@@ -16,6 +16,15 @@
             <template v-if="column.key === 'peers'">
               {{ record.error ? '-' : record.peerCount }}
             </template>
+            <!-- <template v-if="column.key === 'duration'">
+              {{
+                record.duration >= 5000
+                  ? "超时"
+                  : record.duration
+                    ? record.duration + " ms"
+              : "-"
+              }}
+            </template> -->
             <template v-if="column.key === 'actions'">
               <a-button size="small" @click="$emit('showDetails', record)">
                 详情
@@ -37,7 +46,13 @@
               {{ selectedResult && selectedResult.error ? '-' : (selectedResult && selectedResult.peerCount) }}
             </a-descriptions-item>
             <a-descriptions-item label="响应时间">
-              {{ selectedResult && selectedResult.duration ? selectedResult.duration : '-' }} ms
+              {{
+              selectedResult && selectedResult.duration
+              ? selectedResult.duration >= 5000
+              ? "超时"
+              : selectedResult.duration + " ms"
+              : "-"
+              }}
             </a-descriptions-item>
           </a-descriptions>
           <a-collapse class="response-collapse">

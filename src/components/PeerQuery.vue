@@ -2,14 +2,9 @@
     <a-card title="多 Tracker Peer 查询工具" class="peer-query">
         <PeerQueryForm :loading="loading" @query="onQuery" />
         <a-divider />
-        <PeerQueryResult
-            :error="error"
-            :results="results"
-            :activeTab="activeTab"
-            :selectedResult="selectedResult"
-            :summaryColumns="summaryColumns"
-            @showDetails="showDetails"
-        />
+        <ProgressTracker v-if="loading" :total="totalTrackers" :completed="completedTrackers" :successCount="successCount" />
+        <PeerQueryResult :error="error" :results="results" :activeTab="activeTab" :selectedResult="selectedResult"
+            :summaryColumns="summaryColumns" @showDetails="showDetails" />
     </a-card>
 </template>
 
@@ -19,6 +14,7 @@ import { message } from 'ant-design-vue';
 import Bencode from "bencode-js";
 import PeerQueryForm from './PeerQueryForm.vue';
 import PeerQueryResult from './PeerQueryResult.vue';
+import ProgressTracker from './ProgressTracker.vue'; 
 import {
     normalizeTrackerError,
     generatePeerId,
@@ -29,7 +25,8 @@ export default {
     name: 'PeerQuery',
     components: {
         PeerQueryForm,
-        PeerQueryResult
+        PeerQueryResult,
+        ProgressTracker
     },
     data() {
         return {
@@ -38,6 +35,9 @@ export default {
             results: [],
             activeTab: 'summary',
             selectedResult: null,
+            totalTrackers: 0,
+            completedTrackers: 0,
+            successCount: 0,
             summaryColumns: [
                 { title: 'Tracker', dataIndex: 'tracker', key: 'tracker' },
                 { title: '状态', key: 'status' },
@@ -57,7 +57,12 @@ export default {
             this.error = null;
             this.results = [];
             this.activeTab = 'summary';
+
+            this.completedTrackers = 0;
+            this.successCount = 0;
+
             const trackers = trackersText.split('\n').map(t => t.trim()).filter(t => t.length > 0);
+            this.totalTrackers = trackers.length; 
             try {
                 const requests = trackers.map(tracker => this.queryTracker(tracker, infoHash));
                 this.results = await Promise.all(requests);
@@ -129,6 +134,7 @@ export default {
                 }
             } finally {
                 result.duration = Date.now() - startTime;
+                this.completedTrackers++;
             }
             return result;
         },
