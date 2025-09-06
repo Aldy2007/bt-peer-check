@@ -1,5 +1,5 @@
 <template>
-    <a-card title="多 Tracker Peer 查询工具" class="peer-query">
+    <a-card  class="peer-query">
         <PeerQueryForm :loading="loading" @query="onQuery" />
         <a-divider />
         <ProgressTracker v-if="loading" :total="totalTrackers" :completed="completedTrackers" :successCount="successCount" />
