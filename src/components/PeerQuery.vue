@@ -101,7 +101,6 @@ export default {
                     responseType: 'arraybuffer',
                     timeout: 5000
                 });
-                // 解析响应
                 let parsedResponse = null;
                 try {
                     const decoder = new TextDecoder('ascii');
@@ -112,7 +111,6 @@ export default {
                     result.error = '响应解码失败';
                 }
                 result.rawResponse = parsedResponse;
-                console.log(parsedResponse);
                 if (parsedResponse && parsedResponse.complete) {
                     result.complete = parsedResponse.complete;
                 }
@@ -122,6 +120,9 @@ export default {
                         : Array.isArray(parsedResponse.peers)
                             ? parsedResponse.peers.length
                             : 0;
+                }
+                if (result.error == null) {
+                    this.successCount++;
                 }
             } catch (err) {
                 console.error(`[Tracker Proxy] 查询 ${trackerUrl} 失败:`, err);
