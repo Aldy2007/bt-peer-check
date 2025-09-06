@@ -42,7 +42,6 @@ export default {
                 { title: 'Tracker', dataIndex: 'tracker', key: 'tracker' },
                 { title: '状态', key: 'status' },
                 { title: 'Peer 数量', key: 'peers' },
-                { title: '响应时间', dataIndex: 'duration', key: 'duration', render: (text) => `${text} ms` },
                 { title: '操作', key: 'actions' },
             ],
         };
@@ -75,13 +74,12 @@ export default {
             }
         },
         async queryTracker(trackerUrl, infoHash) {
-            const startTime = Date.now();
             const result = {
                 tracker: trackerUrl,
+                complete: 0,
                 error: null,
                 peerCount: 0,
                 rawResponse: null,
-                duration: 0,
             };
             try {
                 const peerId = generatePeerId();
@@ -108,13 +106,16 @@ export default {
                 try {
                     const decoder = new TextDecoder('ascii');
                     const bencodedString = decoder.decode(response.data);
-                    console.log(bencodedString);
                     parsedResponse = Bencode.decode(bencodedString);
                 } catch (decodeErr) {
                     console.error(`[Decode Error] ${trackerUrl}:`, decodeErr);
                     result.error = '响应解码失败';
                 }
                 result.rawResponse = parsedResponse;
+                console.log(parsedResponse);
+                if (parsedResponse && parsedResponse.complete) {
+                    result.complete = parsedResponse.complete;
+                }
                 if (parsedResponse && parsedResponse.peers) {
                     result.peerCount = typeof parsedResponse.peers === 'string'
                         ? parsedResponse.peers.length / 6
@@ -133,7 +134,6 @@ export default {
                     result.rawResponse = null;
                 }
             } finally {
-                result.duration = Date.now() - startTime;
                 this.completedTrackers++;
             }
             return result;

@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import parseMagnetLink from '../utils/magnet'; // 假设parseMagnetLink.js在同一目录下
+import parseMagnetLink from '../utils/magnet'; 
 
 export default {
   name: 'PeerQueryForm',

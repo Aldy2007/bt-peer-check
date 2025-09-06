@@ -1,4 +1,3 @@
-// tracker.js 工具方法
 export function normalizeTrackerError(err) {
   if (err.response) {
     return `Tracker响应异常 (HTTP ${err.response.status})`;

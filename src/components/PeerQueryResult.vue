@@ -1,12 +1,23 @@
 <template>
   <div>
     <a-alert v-if="error" :message="error" type="error" show-icon closable class="error-alert" />
-    <div v-if="results.length > 0" style="margin-bottom: 12px; font-weight: bold;">
-      所有 Tracker Peer 总数：{{ totalPeers }}
+    <div v-if="results.length > 0" class="peer-stats">
+      <a-space size="large">
+        <a-statistic title="已完成" :value="totalComplete"
+          :value-style="{ color: '#52c41a', fontSize: '24px', fontWeight: 'bold' }" />
+        <a-statistic title="总Peer数" :value="totalPeers" :value-style="{ fontSize: '24px', fontWeight: 'bold' }" />
+        <div class="ratio">
+          <span style="font-size: 16px; color: rgba(0, 0, 0, 0.45);">完成率&nbsp;&nbsp;&nbsp;</span>
+          <span style="font-size: 24px; font-weight: bold">
+            {{ completionRate }}%
+          </span>
+        </div>
+      </a-space>
     </div>
     <a-tabs v-model:activeKey="localActiveTab" v-if="results.length > 0">
       <a-tab-pane key="summary" tab="汇总">
-        <a-table :columns="summaryColumns" :dataSource="results" :pagination="false" size="small">
+        <a-table :columns="summaryColumns" :dataSource="sortedResults"
+          :pagination="false" size="small">
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'status'">
               <a-tag :color="record.error ? 'error' : 'success'">
@@ -16,15 +27,6 @@
             <template v-if="column.key === 'peers'">
               {{ record.error ? '-' : record.peerCount }}
             </template>
-            <!-- <template v-if="column.key === 'duration'">
-              {{
-                record.duration >= 5000
-                  ? "超时"
-                  : record.duration
-                    ? record.duration + " ms"
-              : "-"
-              }}
-            </template> -->
             <template v-if="column.key === 'actions'">
               <a-button size="small" @click="$emit('showDetails', record)">
                 详情
@@ -44,15 +46,6 @@
             </a-descriptions-item>
             <a-descriptions-item label="Peer 数量">
               {{ selectedResult && selectedResult.error ? '-' : (selectedResult && selectedResult.peerCount) }}
-            </a-descriptions-item>
-            <a-descriptions-item label="响应时间">
-              {{
-              selectedResult && selectedResult.duration
-              ? selectedResult.duration >= 5000
-              ? "超时"
-              : selectedResult.duration + " ms"
-              : "-"
-              }}
             </a-descriptions-item>
           </a-descriptions>
           <a-collapse class="response-collapse">
@@ -81,13 +74,33 @@ export default {
       localActiveTab: this.activeTab
     };
   },
+  methods: {
+    sumValidField(field) {
+      return this.results
+        .filter(r => !r.error && typeof r[field] === 'number')
+        .reduce((sum, r) => sum + r[field], 0);
+    }
+  },
   computed: {
     totalPeers() {
-      // 只统计没有 error 的 peerCount
-      return this.results
-        .filter(r => !r.error && typeof r.peerCount === 'number')
-        .reduce((sum, r) => sum + r.peerCount, 0);
-    }
+      return this.sumValidField('peerCount');
+    },
+    totalComplete() {
+      return this.sumValidField('complete');
+    },
+    completionRate() {
+      return this.totalPeers > 0
+        ? Math.round((this.totalComplete / this.totalPeers) * 100)
+        : 0;
+    },
+    sortedResults() {
+      return [...this.results].sort((a, b) => {
+        if (a.error === b.error) {
+          return (a.tracker || '').localeCompare(b.tracker || '');
+        }
+        return a.error ? 1 : -1;
+      });
+    },
   },
   watch: {
     activeTab(newVal) {
