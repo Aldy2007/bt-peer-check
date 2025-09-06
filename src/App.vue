@@ -1,13 +1,21 @@
 <template>
   <div id="app">
-    <h1>种子热度查询工具</h1>
-    <p class="subtitle">实时查看Torrent种子的Peer连接情况</p>
+    <div class="app-header">
+      <div class="header-content">
+        <h1>种子热度查询工具</h1>
+        <p class="subtitle">实时查看Torrent种子的Peer连接情况</p>
+      </div>
+      <div class="header-controls">
+        <theme-selector />
+      </div>
+    </div>
     <peer-query />
   </div>
 </template>
 
 <script setup>
 import PeerQuery from './components/PeerQuery.vue';
+import ThemeSelector from './components/ThemeSelector.vue';
 import { useHead } from '@vueuse/head'
 
 useHead({
@@ -31,14 +39,65 @@ useHead({
   font-family: 'Arial', sans-serif;
 }
 
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
 h1 {
-  color: #1890ff;
+  color: var(--color-primary, #1890ff);
   margin-bottom: 10px;
+  font-size: 2.5rem;
 }
 
 .subtitle {
-  color: #666;
-  margin-bottom: 30px;
+  color: var(--color-text, #666);
+  margin-bottom: 0;
   font-size: 16px;
+  opacity: 0.8;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .header-controls {
+    margin-top: 15px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  #app {
+    padding: 15px;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .subtitle {
+    font-size: 14px;
+  }
 }
 </style>

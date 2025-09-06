@@ -3,6 +3,7 @@ import App from './App.vue'
 import Antd from 'ant-design-vue'
 import { createHead } from '@vueuse/head'
 import 'ant-design-vue/dist/antd.css'
+import './styles/hacker.css'
 
 const app = createApp(App)
 const head = createHead()
