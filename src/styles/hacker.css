@@ -1,0 +1,376 @@
+
+/* 主题化全局样式 */
+:root {
+  --color-primary: #00ff66;
+  --color-secondary: #00aa33;
+  --color-background: #000000;
+  --color-surface: rgba(0, 25, 0, 0.95);
+  --color-text: #00ff66;
+  --color-border: #00aa33;
+  --color-glow: rgba(0, 255, 65, 0.4);
+  --text-shadow: 0 0 2px #00ff66, 0 0 4px #00ff66;
+  --box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: 'Courier New', Courier, monospace;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* 黑客风主题特效 */
+.theme-hacker::before,
+.theme-cyberpunk::before,
+.theme-retro::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* 扫描线效果 */
+.has-scanlines::before {
+  background: 
+    linear-gradient(90deg, transparent 0%, var(--color-glow) 50%, transparent 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      var(--color-glow) 2px,
+      var(--color-glow) 4px
+    );
+  animation: scanlines 2s linear infinite;
+  opacity: 0.1;
+}
+
+/* 矩阵雨效果 */
+.has-matrix-rain::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50" font-size="10" fill="%2300ff4120" font-family="monospace">01010101</text></svg>') repeat;
+  opacity: 0.05;
+  animation: matrix-rain 20s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* 容器样式 */
+.container {
+  min-height: 100vh;
+  position: relative;
+  padding: 20px;
+  background: var(--color-surface);
+  backdrop-filter: blur(1px);
+}
+
+/* 标题样式 */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text) !important;
+  margin: 20px 0;
+  position: relative;
+}
+
+.has-animations h1,
+.has-animations h2,
+.has-animations h3,
+.has-animations h4,
+.has-animations h5,
+.has-animations h6 {
+  text-shadow: var(--text-shadow);
+  animation: glow-pulse 3s ease-in-out infinite alternate;
+}
+
+h1 {
+  font-size: 2.5rem;
+  letter-spacing: 3px;
+}
+
+.theme-hacker h1::before,
+.theme-cyberpunk h1::before,
+.theme-retro h1::before {
+  content: '> ';
+  color: var(--color-secondary);
+  animation: cursor-blink 1.5s infinite;
+}
+
+/* 文本样式 */
+p, label, span, div {
+  color: var(--color-text) !important;
+  line-height: 1.6;
+}
+
+.has-animations p,
+.has-animations label,
+.has-animations span {
+  text-shadow: var(--text-shadow);
+}
+
+/* 链接样式 */
+a {
+  color: var(--color-primary) !important;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.has-animations a {
+  text-shadow: var(--text-shadow);
+}
+
+a:hover {
+  color: var(--color-text) !important;
+  opacity: 0.8;
+}
+
+.has-animations a:hover {
+  animation: link-glitch 0.3s ease;
+}
+
+/* 输入框样式 */
+input, textarea {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text) !important;
+  padding: 12px 15px;
+  margin: 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  transition: all 0.3s ease;
+  box-shadow: var(--box-shadow);
+}
+
+.has-animations input,
+.has-animations textarea {
+  text-shadow: var(--text-shadow);
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-primary) !important;
+  box-shadow: var(--box-shadow) !important;
+}
+
+.has-animations input:focus,
+.has-animations textarea:focus {
+  animation: input-pulse 1s ease infinite;
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--color-secondary) !important;
+  opacity: 0.6;
+}
+
+/* 按钮样式 */
+button {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text) !important;
+  padding: 12px 24px;
+  margin: 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.has-animations button {
+  text-shadow: var(--text-shadow);
+}
+
+.has-animations button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--color-glow), transparent);
+  transition: left 0.5s ease;
+}
+
+button:hover {
+  background: var(--color-primary) !important;
+  color: var(--color-background) !important;
+  box-shadow: var(--box-shadow) !important;
+  transform: translateY(-1px);
+}
+
+.has-animations button:hover {
+  animation: button-glow 0.3s ease;
+}
+
+.has-animations button:hover::before {
+  left: 100%;
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* 卡片/面板样式 */
+.ant-card, .ant-form, .ant-table {
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--box-shadow) !important;
+}
+
+.ant-card-head {
+  background: var(--color-surface) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.ant-card-head-title {
+  color: var(--color-text) !important;
+}
+
+.has-animations .ant-card-head-title {
+  text-shadow: var(--text-shadow) !important;
+}
+
+/* App容器 */
+#app {
+  font-family: 'Courier New', Courier, monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--color-text);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* 动画效果 */
+@keyframes glow-pulse {
+  0% { text-shadow: var(--text-shadow); }
+  100% { 
+    text-shadow: 
+      0 0 3px var(--color-primary), 
+      0 0 6px var(--color-primary), 
+      0 0 9px var(--color-primary); 
+  }
+}
+
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+@keyframes link-glitch {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-1px); }
+  40% { transform: translateX(1px); }
+  60% { transform: translateX(-0.5px); }
+  80% { transform: translateX(0.5px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes input-pulse {
+  0%, 100% { box-shadow: var(--box-shadow); }
+  50% { 
+    box-shadow: 
+      0 0 8px var(--color-glow),
+      0 0 12px var(--color-glow); 
+  }
+}
+
+@keyframes button-glow {
+  0% { box-shadow: var(--box-shadow); }
+  50% { box-shadow: 0 0 18px var(--color-glow); }
+  100% { box-shadow: var(--box-shadow); }
+}
+
+@keyframes scanlines {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(4px); }
+}
+
+@keyframes matrix-rain {
+  0% { transform: translateY(-100px); }
+  100% { transform: translateY(100vh); }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+  box-shadow: 0 0 5px var(--color-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+  box-shadow: 0 0 8px var(--color-secondary);
+}
+
+/* 选择文本样式 */
+::selection {
+  background: var(--color-glow);
+  color: var(--color-background);
+}
+
+/* 加载动画 */
+@keyframes loading-dots {
+  0%, 20% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.loading::after {
+  content: '...';
+  animation: loading-dots 1.5s infinite;
+}
+
+/* 经典主题样式调整 */
+.theme-classic {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.theme-classic h1, 
+.theme-classic h2, 
+.theme-classic h3, 
+.theme-classic h4, 
+.theme-classic h5, 
+.theme-classic h6 {
+  font-weight: 600;
+  letter-spacing: normal;
+}
+
+.theme-classic h1::before {
+  display: none;
+}
+
+/* 暗黑主题样式调整 */
+.theme-dark {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.theme-dark h1::before {
+  display: none;
+}
