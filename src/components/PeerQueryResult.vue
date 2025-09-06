@@ -12,12 +12,21 @@
             {{ completionRate }}%
           </span>
         </div>
+        <div class="recommendation">
+          <span style="font-size: 16px; color: rgba(0, 0, 0, 0.45);">推荐度&nbsp;&nbsp;&nbsp;</span>
+          <span :style="{
+            fontSize: '24px',
+            fontWeight: 'bold',
+            color: recommendationColor
+          }">
+            {{ downloadRecommendation }}
+          </span>
+        </div>
       </a-space>
     </div>
     <a-tabs v-model:activeKey="localActiveTab" v-if="results.length > 0">
       <a-tab-pane key="summary" tab="汇总">
-        <a-table :columns="summaryColumns" :dataSource="sortedResults"
-          :pagination="false" size="small">
+        <a-table :columns="summaryColumns" :dataSource="sortedResults" :pagination="false" size="small">
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'status'">
               <a-tag :color="record.error ? 'error' : 'success'">
@@ -101,6 +110,20 @@ export default {
         return a.error ? 1 : -1;
       });
     },
+    downloadRecommendation() {
+      const completed = this.totalComplete;
+      if (completed >= 1000) return '极快';
+      if (completed >= 500) return '速度快';
+      if (completed >= 100) return '速度一般';
+      return '不推荐下载';
+    },
+    recommendationColor() {
+      const completed = this.totalComplete;
+      if (completed >= 1000) return '#52c41a'; // 绿色（极快）
+      if (completed >= 500) return '#52c41a'; // 绿色（快）
+      if (completed >= 100) return '#faad14'; // 橙色（一般）
+      return '#f5222d'; // 红色（不推荐）
+    }
   },
   watch: {
     activeTab(newVal) {

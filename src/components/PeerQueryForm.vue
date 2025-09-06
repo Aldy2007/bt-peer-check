@@ -9,7 +9,7 @@
     <a-form-item label="Tracker 服务器列表" required>
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
         <a-button @click="fetchTrackers" :loading="fetchingTrackers" size="small">
-          获取推荐Tracker
+          增加推荐Tracker
         </a-button>
       </div>
       <a-textarea v-model:value="trackersText" placeholder="每行输入一个 tracker URL" :rows="4" allow-clear />
@@ -64,7 +64,10 @@ export default {
         const response = await fetch('https://cf.trackerslist.com/http.txt');
         if (response.ok) {
           const text = (await response.text()).split('\n').filter(line => line.trim()).join('\n');
-          this.trackersText = text.trim();
+          const newTrackers = text.trim().split('\n');
+          const existingTrackers = this.trackersText.split('\n');
+          const uniqueNewTrackers = newTrackers.filter(tracker => !existingTrackers.includes(tracker));
+          this.trackersText = uniqueNewTrackers.join('\n') + '\n' + this.trackersText;
         } else {
           throw new Error('获取 Tracker 列表失败');
         }
