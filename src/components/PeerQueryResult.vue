@@ -1,6 +1,8 @@
 <template>
   <div>
     <a-alert v-if="error" :message="error" type="error" show-icon closable class="error-alert" />
+
+    <!-- 统计信息区域 -->
     <div v-if="results.length > 0" class="peer-stats">
       <a-space size="large">
         <a-statistic title="已完成" :value="totalComplete"
@@ -24,42 +26,63 @@
         </div>
       </a-space>
     </div>
+
+    <!-- 结果标签页 -->
     <a-tabs v-model:activeKey="localActiveTab" v-if="results.length > 0">
       <a-tab-pane key="summary" tab="汇总">
         <a-table :columns="summaryColumns" :dataSource="sortedResults" :pagination="false" size="small">
           <template #bodyCell="{ column, record }">
+            <!-- 状态列 -->
             <template v-if="column.key === 'status'">
-              <a-tag :color="record.error ? 'error' : 'success'">
+              <a-tag v-if="record.loading" color="processing">查询中</a-tag>
+              <a-tag v-else :color="record.error ? 'error' : 'success'">
                 {{ record.error ? '失败' : '成功' }}
               </a-tag>
             </template>
+
+            <!-- Peer数量列 -->
             <template v-if="column.key === 'peers'">
-              {{ record.error ? '-' : record.peerCount }}
+              <span v-if="record.loading">
+                <a-spin size="small" />
+              </span>
+              <span v-else>
+                {{ record.error ? '-' : record.peerCount }}
+              </span>
             </template>
+
+            <!-- 操作列 -->
             <template v-if="column.key === 'actions'">
-              <a-button size="small" @click="$emit('showDetails', record)">
+              <a-button size="small" @click="$emit('showDetails', record)" :disabled="record.loading">
                 详情
               </a-button>
             </template>
           </template>
         </a-table>
       </a-tab-pane>
+
       <a-tab-pane key="details" tab="详细结果" :disabled="!selectedResult">
         <div v-if="selectedResult">
           <h3>{{ selectedResult.tracker }}</h3>
           <a-descriptions bordered size="small">
             <a-descriptions-item label="状态">
-              <a-tag :color="selectedResult && selectedResult.error ? 'error' : 'success'">
-                {{ selectedResult && selectedResult.error ? '失败' : '成功' }}
+              <a-tag :color="selectedResult.error ? 'error' : 'success'">
+                {{ selectedResult.error ? '失败' : '成功' }}
               </a-tag>
             </a-descriptions-item>
             <a-descriptions-item label="Peer 数量">
-              {{ selectedResult && selectedResult.error ? '-' : (selectedResult && selectedResult.peerCount) }}
+              {{ selectedResult.error ? '-' : selectedResult.peerCount }}
+            </a-descriptions-item>
+            <a-descriptions-item label="完成数">
+              {{ selectedResult.error ? '-' : selectedResult.complete }}
             </a-descriptions-item>
           </a-descriptions>
+
           <a-collapse class="response-collapse">
             <a-collapse-panel key="1" header="原始响应">
-              <pre>{{ selectedResult && selectedResult.rawResponse ? selectedResult.rawResponse : '-' }}</pre>
+              <pre>{{ selectedResult.rawResponse ? JSON.stringify(selectedResult.rawResponse, null, 2) : '-' }}</pre>
+            </a-collapse-panel>
+            <a-collapse-panel key="2" header="错误信息" v-if="selectedResult.error">
+              <pre>{{ selectedResult.error }}</pre>
             </a-collapse-panel>
           </a-collapse>
         </div>
@@ -86,7 +109,7 @@ export default {
   methods: {
     sumValidField(field) {
       return this.results
-        .filter(r => !r.error && typeof r[field] === 'number')
+        .filter(r => !r.error && !r.loading && typeof r[field] === 'number')
         .reduce((sum, r) => sum + r[field], 0);
     }
   },
@@ -104,10 +127,16 @@ export default {
     },
     sortedResults() {
       return [...this.results].sort((a, b) => {
-        if (a.error === b.error) {
-          return (a.tracker || '').localeCompare(b.tracker || '');
+        // 先按加载状态排序（正在加载的排前面）
+        if (a.loading !== b.loading) {
+          return a.loading ? -1 : 1;
         }
-        return a.error ? 1 : -1;
+        // 然后按错误状态排序（错误的排后面）
+        if (a.error !== b.error) {
+          return a.error ? 1 : -1;
+        }
+        // 最后按tracker名称排序
+        return (a.tracker || '').localeCompare(b.tracker || '');
       });
     },
     downloadRecommendation() {
@@ -140,12 +169,26 @@ export default {
 .error-alert {
   margin-bottom: 20px;
 }
+
+.peer-stats {
+  margin-bottom: 20px;
+}
+
 .response-collapse {
   margin-top: 20px;
 }
+
 .response-collapse pre {
   white-space: pre-wrap;
   word-wrap: break-word;
   margin: 0;
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+/* 为加载中的行添加浅色背景 */
+:deep(.ant-table-tbody) tr[data-loading="true"] {
+  background-color: rgba(24, 144, 255, 0.05);
 }
 </style>

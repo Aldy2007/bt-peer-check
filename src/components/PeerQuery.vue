@@ -1,8 +1,9 @@
 <template>
-    <a-card  class="peer-query">
+    <a-card class="peer-query">
         <PeerQueryForm :loading="loading" @query="onQuery" />
         <a-divider />
-        <ProgressTracker v-if="loading" :total="totalTrackers" :completed="completedTrackers" :successCount="successCount" />
+        <ProgressTracker v-if="loading" :total="totalTrackers" :completed="completedTrackers"
+            :successCount="successCount" />
         <PeerQueryResult :error="error" :results="results" :activeTab="activeTab" :selectedResult="selectedResult"
             :summaryColumns="summaryColumns" @showDetails="showDetails" />
     </a-card>
@@ -14,7 +15,7 @@ import { message } from 'ant-design-vue';
 import Bencode from "bencode-js";
 import PeerQueryForm from './PeerQueryForm.vue';
 import PeerQueryResult from './PeerQueryResult.vue';
-import ProgressTracker from './ProgressTracker.vue'; 
+import ProgressTracker from './ProgressTracker.vue';
 import {
     normalizeTrackerError,
     generatePeerId,
@@ -52,20 +53,35 @@ export default {
                 message.warning('请输入有效的 Info Hash 和至少一个 Tracker URL');
                 return;
             }
+
             this.loading = true;
             this.error = null;
-            this.results = [];
+            this.results = []; // 清空之前的结果
             this.activeTab = 'summary';
-
             this.completedTrackers = 0;
             this.successCount = 0;
 
             const trackers = trackersText.split('\n').map(t => t.trim()).filter(t => t.length > 0);
-            this.totalTrackers = trackers.length; 
+            this.totalTrackers = trackers.length;
+
+            // 为每个tracker预先创建结果对象
+            this.results = trackers.map(tracker => ({
+                tracker,
+                complete: 0,
+                error: null,
+                peerCount: 0,
+                rawResponse: null,
+                loading: true // 添加加载状态
+            }));
+
+            // 并行执行所有查询
+            const requests = trackers.map((tracker, index) =>
+                this.queryTracker(tracker, infoHash, index)
+            );
+
             try {
-                const requests = trackers.map(tracker => this.queryTracker(tracker, infoHash));
-                this.results = await Promise.all(requests);
-                message.success(`成功查询 ${this.results.filter(r => !r.error).length}/${trackers.length} 个 Tracker`);
+                await Promise.all(requests);
+                message.success(`成功查询 ${this.successCount}/${trackers.length} 个 Tracker`);
             } catch (err) {
                 console.error('查询出错:', err);
                 this.error = `查询过程中出错: ${err.message}`;
@@ -73,14 +89,8 @@ export default {
                 this.loading = false;
             }
         },
-        async queryTracker(trackerUrl, infoHash) {
-            const result = {
-                tracker: trackerUrl,
-                complete: 0,
-                error: null,
-                peerCount: 0,
-                rawResponse: null,
-            };
+
+        async queryTracker(trackerUrl, infoHash, resultIndex) {
             try {
                 const peerId = generatePeerId();
                 const params = {
@@ -91,8 +101,8 @@ export default {
                     downloaded: 536870912,
                     left: 536870912,
                 };
+
                 const proxyUrl = `https://api.vercel.aldyh.top/proxy`;
-                // const proxyUrl = `http://192.168.10.49:44444/proxy`;
                 const response = await axios.get(proxyUrl, {
                     params: {
                         url: trackerUrl,
@@ -101,6 +111,7 @@ export default {
                     responseType: 'arraybuffer',
                     timeout: 5000
                 });
+
                 let parsedResponse = null;
                 try {
                     const decoder = new TextDecoder('ascii');
@@ -108,37 +119,48 @@ export default {
                     parsedResponse = Bencode.decode(bencodedString);
                 } catch (decodeErr) {
                     console.error(`[Decode Error] ${trackerUrl}:`, decodeErr);
-                    result.error = '响应解码失败';
                 }
-                result.rawResponse = parsedResponse;
-                if (parsedResponse && parsedResponse.complete) {
-                    result.complete = parsedResponse.complete;
+
+                // 更新结果对象
+                this.results[resultIndex].rawResponse = parsedResponse;
+                this.results[resultIndex].loading = false;
+
+                if (parsedResponse) {
+                    if (parsedResponse.complete) {
+                        this.results[resultIndex].complete = parsedResponse.complete;
+                    }
+
+                    if (parsedResponse.peers) {
+                        const peerCount = typeof parsedResponse.peers === 'string'
+                            ? parsedResponse.peers.length / 6
+                            : Array.isArray(parsedResponse.peers)
+                                ? parsedResponse.peers.length
+                                : 0;
+                        this.results[resultIndex].peerCount = peerCount;
+                    }
                 }
-                if (parsedResponse && parsedResponse.peers) {
-                    result.peerCount = typeof parsedResponse.peers === 'string'
-                        ? parsedResponse.peers.length / 6
-                        : Array.isArray(parsedResponse.peers)
-                            ? parsedResponse.peers.length
-                            : 0;
-                }
-                if (result.error == null) {
+
+                if (!this.results[resultIndex].error) {
                     this.successCount++;
                 }
             } catch (err) {
                 console.error(`[Tracker Proxy] 查询 ${trackerUrl} 失败:`, err);
-                result.error = normalizeTrackerError(err);
+                this.results[resultIndex].error = normalizeTrackerError(err);
+                this.results[resultIndex].loading = false;
+
                 try {
-                    result.rawResponse = err.response?.data
+                    const rawResponse = err.response?.data
                         ? Bencode.decode(new Uint8Array(err.response.data))
                         : null;
+                    this.results[resultIndex].rawResponse = rawResponse;
                 } catch (decodeErr) {
-                    result.rawResponse = null;
+                    this.results[resultIndex].rawResponse = null;
                 }
             } finally {
                 this.completedTrackers++;
             }
-            return result;
         },
+
         showDetails(result) {
             this.selectedResult = result;
             this.activeTab = 'details';
